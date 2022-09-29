@@ -343,6 +343,35 @@ def ISQ(T):
     return len(time_in_system_50), len(time_in_system_100)
 
 
+def NH_ISQ_arrival_time(t):
+    k = 2
+    while k > (5*math.sin(t/2)+5)/10:
+        k = random.random()
+        t -= (1/10)*math.log(random.random())
+    return t
+
+
+def NH_ISQ(T):
+    A, D, p, mu_1, mu_2, lamda = [], [], 0.6, 1, 1/2, 10
+    t = 0
+    while t < T:
+        t_A = NH_ISQ_arrival_time(t)
+        t += t_A
+        A.append(t)
+    for i in range(len(A)):
+        u = random.random()
+        if u > p:
+            t_D = -(1/mu_1)*math.log(u)
+        else:
+            t_D = -(1/mu_2)*math.log(u)
+        D.append(t_D)
+
+    time_in_system_50 = {i: A[i] + D[i] for i in range(len(A)) if ((A[i]+D[i]) > 50 and A[i] <= 50)}
+    time_in_system_100 = {i: A[i] + D[i] for i in range(len(A)) if (A[i]+D[i]) > T}
+
+    return len(time_in_system_50), len(time_in_system_100)
+
+
 def problem_9():
     T = 100
     iter_fifty, iter_hundred = [], []
@@ -350,14 +379,23 @@ def problem_9():
         num_left_at_fifty, num_left_at_hundred = ISQ(T)
         iter_fifty.append(num_left_at_fifty)
         iter_hundred.append(num_left_at_hundred)
+    print('Using homogeneous arrival process')
+    print(f'Mean of customers in system at time = 50: {np.mean(iter_fifty)}\n'
+          f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
+          f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
+          f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
+    for i in range(1000):
+        num_left_at_fifty, num_left_at_hundred = NH_ISQ(T)
+        iter_fifty.append(num_left_at_fifty)
+        iter_hundred.append(num_left_at_hundred)
+    print('\nUsing NH arrival process')
     print(f'Mean of customers in system at time = 50: {np.mean(iter_fifty)}\n'
           f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
           f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
           f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
 
-
 # executable code
-"""
+# """
 print('\n\nProblem 1')
 problem_1()
 print('\n\nProblem 2')
@@ -372,5 +410,5 @@ print('\n\nProblem 6')
 problem_6()
 print('\n\nProblem 9')
 problem_9()
-"""
+# """
 
