@@ -331,8 +331,8 @@ def NH_ISQ_arrival_time(t):
 
 
 def ISQ(T, type_process):
-    A, D, p, mu_1, mu_2, lamda = [], [], 0.6, 1, 1/2, 10
-    t, num_in_sys, num_in_sys_at_t = 0, 0, {}
+    A, D, p, mu_1, mu_2, lamda = [], [], 0.6, 1, 0.5, 10
+    t = 0
     while t < T:
         if type_process == 'NH':
             t_A = -(1/10)*math.log(random.random())
@@ -347,24 +347,30 @@ def ISQ(T, type_process):
         else:
             t_D = -(1/mu_2)*math.log(u)
         D.append(t_D)
-    for i in range(len(A)):
-        if A[i] + D[i] <= T:
-            num_in_sys += 1
-        elif A[i] + D[i] > T:
-            num_in_sys -= 1
-        num_in_sys_at_t[A[i]] = num_in_sys
-    print(num_in_sys_at_t)
-    time_in_system_50 = {i: A[i] + D[i] for i in range(len(A)) if ((A[i]+D[i]) > 50 and A[i] <= 50)}
-    time_in_system_100 = {i: A[i] + D[i] for i in range(len(A)) if (A[i]+D[i]) > T}
+    depart_times = {i: A[i]+D[i] for i in range(len(A))}
+    print(A)
+    print('\n\n')
+    print(depart_times)
+    still_in_sys_at_t = {}
+    for i in A:
+        list_of_ppl_in_sys = [k for k in depart_times if depart_times[k] > i]
+        print(i, list_of_ppl_in_sys)
+        # still_in_sys_at_t[A] = len()
+    print('\n\n')
+    print(still_in_sys_at_t)
+
+
+    time_in_system_50 = {A[i]: A[i] + D[i] for i in range(len(A)) if ((A[i]+D[i]) > 50 and A[i] <= 50)}
+    time_in_system_100 = {A[i]: A[i] + D[i] for i in range(len(A)) if (A[i]+D[i]) > T}
     return time_in_system_50, time_in_system_100, num_in_sys_at_t
 
 
 def problem_9():
-    T = 50
+    T = 10
     """
     iter_fifty, iter_hundred = [], []
-    for i in range(1):
-        num_left_at_fifty, num_left_at_hundred, num_in_system_at_t = ISQ(T, 'H')
+    for i in range(1000):
+        num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'H')
         iter_fifty.append(len(num_left_at_fifty))
         iter_hundred.append(len(num_left_at_hundred))
     print('Using homogeneous arrival process')
@@ -372,13 +378,24 @@ def problem_9():
           f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
           f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
           f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
+    iter_fifty, iter_hundred = [], []
+    for i in range(1000):
+        num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
+        iter_fifty.append(len(num_left_at_fifty))
+        iter_hundred.append(len(num_left_at_hundred))
+    print('\nUsing NH arrival process')
+    print(f'Mean of customers in system at time = 50: {np.mean(iter_fifty)}\n'
+          f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
+          f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
+          f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
     """
     for i in range(1):
-        num_left_at_fifty, num_left_at_hundred, num_in_system_at_t = ISQ(T, 'NH')
-        lists = sorted(num_in_system_at_t.items())  # sorted by key, return a list of tuples
+        num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
+        lists = sorted(num_in_sys_at_t.items())  # sorted by key, return a list of tuples
         x, y = zip(*lists)  # unpack a list of pairs into two tuples
         plt.plot(x, y)
         plt.show()
+
 
 
 """
