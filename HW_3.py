@@ -271,26 +271,40 @@ def problem_4():
     print("Probability always positive:", prob_good)
 
 
-def AR_method():
+def shock_value():
     running = True
     while running:
-        y = -(1 / 2) * math.log(2 * random.random())
+        y = -2*math.log(2*random.random())
         u = random.random()
-        if u <= (y*math.exp(-y))/math.exp(-y/2):
+        if u <= (y*math.exp(-y))/((1/2)*math.exp(-y/2)):
             running = False
-    return y
+        return y
 
 
-def shocks(C):
-    ASV, T = 0, 0
-
+def shocks(C, alpha):
+    ASV, T, A, shock_residuals = 0, 0, {}, {}
+    iter = 0
     while ASV < C:
-        # generate shock time and initial value
+        # generate shock time
         t = -(1/10)*math.log(random.random())
         # update total time
         T += t
-        # shock value
-        y = AR_method()
+        # generate shock value
+        shock_val = shock_value()
+        A[t] = shock_val
+        # shock residual
+        shock_residuals[t] = shock_val*math.exp(-alpha*(T-list(A.values()).index(shock_val)))
+        ASV = sum([shock_residuals[t] for t in shock_residuals])
+    return T
+
+
+def problem_5():
+    C, alpha = 5, 0.5
+    avg_time, K = 0, 1000
+    for i in range(K):
+        avg_time += shocks(C, alpha)
+    avg_time /= K
+    print('Average time to system fail:',avg_time)
 
 
 def problem_6():
@@ -323,8 +337,7 @@ def ISQ(T):
             t_D = -(1/mu_2)*math.log(u)
         D.append(t_D)
 
-    under_50_A = {i: A[i] for i in range(len(A)) if A[i] <= 50}
-    time_in_system_50 = {i: A[i] + D[i] for i in under_50_A if (A[i]+D[i]) > 50}
+    time_in_system_50 = {i: A[i] + D[i] for i in range(len(A)) if ((A[i]+D[i]) > 50 and A[i] <= 50)}
     time_in_system_100 = {i: A[i] + D[i] for i in range(len(A)) if (A[i]+D[i]) > T}
 
     return len(time_in_system_50), len(time_in_system_100)
@@ -334,20 +347,30 @@ def problem_9():
     T = 100
     iter_fifty, iter_hundred = [], []
     for i in range(1000):
-        left_at_fifty, left_at_hundred = ISQ(T)
-        iter_fifty.append(left_at_fifty)
-        iter_hundred.append(left_at_hundred)
+        num_left_at_fifty, num_left_at_hundred = ISQ(T)
+        iter_fifty.append(num_left_at_fifty)
+        iter_hundred.append(num_left_at_hundred)
     print(f'Mean of customers in system at time = 50: {np.mean(iter_fifty)}\n'
           f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
           f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
           f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
 
 
-# problem_1()
-# problem_2()
-# problem_3()
-# problem_4()
-# problem_6()
-# problem_9()
-
+# executable code
+"""
+print('\n\nProblem 1')
+problem_1()
+print('\n\nProblem 2')
+problem_2()
+print('\n\nProblem 3')
+problem_3()
+print('\n\nProblem 4')
+problem_4()
+print('\n\nProblem 5')
+problem_5()
+print('\n\nProblem 6')
+problem_6()
+print('\n\nProblem 9')
+problem_9()
+"""
 
