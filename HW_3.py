@@ -66,13 +66,6 @@ def SSQ(T:float):
 
 
 def problem_1():
-    A, D, S, idle, over = SSQ(9)
-    plt.plot(S.keys(), S.values())
-    plt.xlabel("time")
-    plt.ylabel("# in system")
-    plt.title('Single Server Queue over Time T')
-    plt.savefig('SSQ.png', dpi=300)
-
     customer_time, overtime, idle_time = 0, 0, 0
     iterations = [100,1000]
     for m in iterations:
