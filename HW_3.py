@@ -359,7 +359,7 @@ def ISQ(T, type_process):
 
 def problem_9():
     T, K = 100, 1000
-    iter_fifty, iter_hundred, paths = [], [], {i: (None, None) for i in range(K)}
+    iter_fifty, iter_hundred = [], []
     for i in range(K):
         num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'H')
         iter_fifty.append(len(num_left_at_fifty))
@@ -371,8 +371,8 @@ def problem_9():
           f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
 
     num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
-    lists = sorted(num_in_sys_at_t.items())  # sorted by key, return a list of tuples
-    x, y = zip(*lists)  # unpack a list of pairs into two tuples
+    lists = sorted(num_in_sys_at_t.items())
+    x, y = zip(*lists)
     plt.plot(x, y)
     plt.xlabel('t')
     plt.ylabel('# in system')
@@ -380,16 +380,18 @@ def problem_9():
     plt.show()
     plt.close()
 
+    paths = {i: (None, None) for i in range(K)}
     fig = plt.figure()
-    fig.suptitle('People in NH_ISQ 1K paths')
+    fig.suptitle('Average People in NH_ISQ 1K paths')
     for k in range(K):
         num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
         paths[k] = (num_in_sys_at_t.keys(), num_in_sys_at_t.values())
+
     plt.ylim(0)
     plt.xlim(0)
     plt.xlabel('t')
     plt.ylabel('# in system')
-    plt.savefig('People in NH_ISQ 1K paths.png', dpi=300)
+    plt.savefig('Average People in NH_ISQ 1K paths.png', dpi=300)
     plt.close()
 
 """
