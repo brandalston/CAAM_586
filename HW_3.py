@@ -354,7 +354,7 @@ def ISQ(T, type_process):
     still_in_sys_at_t = {}
     for i in A:
         list_of_ppl_in_sys = [k for k in depart_times if depart_times[k] > i]
-        print(i, list_of_ppl_in_sys)
+        print(i, len(list_of_ppl_in_sys))
         # still_in_sys_at_t[A] = len()
     print('\n\n')
     print(still_in_sys_at_t)
