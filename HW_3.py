@@ -205,29 +205,34 @@ def poisson(T, lamda):
 
 
 def CD_SSQ(T, lamda):
-    arrival_times = poisson(T, lamda)  # arrival time
-    n = len(arrival_times)
+    arrival_times = poisson(T, lamda)  # arrival times
+    n = len(arrival_times)  # num arrivals
     server_times = np.zeros(n)  # Server Start time
     departure_times = np.zeros(n)  # Depart time
     idle_times = np.zeros(n)  # Idle time
     wait_times = np.zeros(n)  # Wait time
 
-    server_times[0] = arrival_times[0]
-    G = -math.log(random.random())/4
-    departure_times[0] = server_times[0] + G
-    idle_times[0] = arrival_times[0]
-    wait_times[0] = 0
+    server_times[0] = arrival_times[0]  # enter system time of first customer
+    G = -(1/4)*math.log(random.random())  # service time of first customer
+    departure_times[0] = server_times[0] + G  # exit time of first customer
+    idle_times[0] = arrival_times[0]  # idle time of server at beginning
+    wait_times[0] = 0  # no wait time of first customer to enter system
 
-    jobs_leaving = np.zeros(n)
+    jobs_leaving = np.zeros(n)  # event number aka customer who left
     for iter in range(1,n):
+        # next event is arrival or departure
         server_times[iter] = max(departure_times[iter-1], arrival_times[iter])
+        # wait time of next event to enter service
         wait_times[iter] = server_times[iter] - arrival_times[iter]
+        # generate leave time
         F = 5 * random.random()
+        # leave if leave time < wait time
         if wait_times[iter] > F:
             departure_times[iter] = departure_times[iter - 1]
             jobs_leaving[iter] = 1
         else:
-            G = -math.log(random.random())/4
+            # generate service time and update time to leave system
+            G = -(1/4)*math.log(random.random())
             departure_times[iter] = server_times[iter] + G
     number_left = sum(jobs_leaving)
     return number_left
@@ -245,16 +250,21 @@ def problem_3():
     return
 
 
-def insurance_claim(T, lamda):
+def insurance_claim(T, lamda, capital):
     t = 0
-    M = 25000
     while t < T:
-        ta = - math.log(random.random()) / lamda
+        # generate claim arrival time
+        ta = -(1/lamda)*math.log(random.random())
+        # update time
         t = t + ta
+        # claim amount
         claim = -1000*math.log(random.random())
+        # payment amount
         payment = ta*11000
-        M = M + payment - claim
-        if M < 0:
+        # update capital
+        capital += (payment - claim)
+        # if capital reach 0 at any point then option risk policy fails
+        if capital < 0:
             return 0
     return 1
 
@@ -263,12 +273,88 @@ def problem_4():
     m = 1000
     prob_good = 0
     for iter in range(m):
-        prob_good += insurance_claim(365, 10)
+        prob_good += insurance_claim(365, 10, 25000)
     prob_good /= m
     print("Probability always positive:", prob_good)
+
+
+def AR_method():
+    running = True
+    while running:
+        y = -(1 / 2) * math.log(2 * random.random())
+        u = random.random()
+        if u <= (y*math.exp(-y))/math.exp(-y/2):
+            running = False
+    return y
+
+
+def shocks(C):
+    ASV, T = 0, 0
+
+    while ASV < C:
+        # generate shock time and initial value
+        t = -(1/10)*math.log(random.random())
+        # update total time
+        T += t
+        # shock value
+        y = AR_method()
+
+
+def problem_6():
+    N, K, S_0, mu, theta = 20, 100, 100, -0.05, .03
+    n, R, V, avg_V = 0, S_0, np.zeros(N), {i: None for i in range(N)}
+    while n < 20:
+        x = np.random.normal(mu,theta)
+        R *= math.exp(x)
+        P = R
+        V[n] = K - P
+        n += 1
+    for n in range(N):
+        avg_V[n] = sum(V[1:n])/N
+    print(f'Expected stock gain at beginning of day:', avg_V)
+    return
+
+
+def ISQ(T):
+    A, D, p, mu_1, mu_2, lamda = [], [], 0.6, 1, 1/2, 10
+    t = 0
+    while t < T:
+        t_A = -(1/10)*math.log(random.random())
+        t += t_A
+        A.append(t)
+    for i in range(len(A)):
+        u = random.random()
+        if u > p:
+            t_D = -(1/mu_1)*math.log(u)
+        else:
+            t_D = -(1/mu_2)*math.log(u)
+        D.append(t_D)
+
+    under_50_A = {i: A[i] for i in range(len(A)) if A[i] <= 50}
+    time_in_system_50 = {i: A[i] + D[i] for i in under_50_A if (A[i]+D[i]) > 50}
+    time_in_system_100 = {i: A[i] + D[i] for i in range(len(A)) if (A[i]+D[i]) > T}
+
+    return len(time_in_system_50), len(time_in_system_100)
+
+
+def problem_9():
+    T = 100
+    iter_fifty, iter_hundred = [], []
+    for i in range(1000):
+        left_at_fifty, left_at_hundred = ISQ(T)
+        iter_fifty.append(left_at_fifty)
+        iter_hundred.append(left_at_hundred)
+    print(f'Mean of customers in system at time = 50: {np.mean(iter_fifty)}\n'
+          f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
+          f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
+          f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
 
 
 # problem_1()
 # problem_2()
 # problem_3()
-problem_4()
+# problem_4()
+# problem_6()
+# problem_9()
+
+
