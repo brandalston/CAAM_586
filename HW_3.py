@@ -348,16 +348,9 @@ def ISQ(T, type_process):
             t_D = -(1/mu_2)*math.log(u)
         D.append(t_D)
     depart_times = {i: A[i]+D[i] for i in range(len(A))}
-    print(A)
-    print('\n')
-    print(depart_times)
-    still_in_sys_at_t = {}
+    num_in_sys_at_t = {}
     for i in A:
-        list_of_ppl_in_sys = [k for k in depart_times if depart_times[k] > i]
-        print(i, len(list_of_ppl_in_sys))
-        # still_in_sys_at_t[A] = len()
-    print('\n')
-    print(still_in_sys_at_t)
+        num_in_sys_at_t[i] = len([k for k in depart_times if (depart_times[k] > i >= A[k])])
 
     time_in_system_50 = {A[i]: A[i] + D[i] for i in range(len(A)) if ((A[i]+D[i]) > 50 and A[i] <= 50)}
     time_in_system_100 = {A[i]: A[i] + D[i] for i in range(len(A)) if (A[i]+D[i]) > T}
@@ -365,10 +358,9 @@ def ISQ(T, type_process):
 
 
 def problem_9():
-    T = 1.5
-    """
-    iter_fifty, iter_hundred = [], []
-    for i in range(1000):
+    T, K = 100, 1000
+    iter_fifty, iter_hundred, paths = [], [], {i: (None, None) for i in range(K)}
+    for i in range(K):
         num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'H')
         iter_fifty.append(len(num_left_at_fifty))
         iter_hundred.append(len(num_left_at_hundred))
@@ -377,25 +369,28 @@ def problem_9():
           f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
           f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
           f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
-    iter_fifty, iter_hundred = [], []
-    for i in range(1000):
-        num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
-        iter_fifty.append(len(num_left_at_fifty))
-        iter_hundred.append(len(num_left_at_hundred))
-    print('\nUsing NH arrival process')
-    print(f'Mean of customers in system at time = 50: {np.mean(iter_fifty)}\n'
-          f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
-          f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
-          f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
-    """
-    for i in range(1):
-        num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
-        lists = sorted(num_in_sys_at_t.items())  # sorted by key, return a list of tuples
-        x, y = zip(*lists)  # unpack a list of pairs into two tuples
-        plt.plot(x, y)
-        plt.show()
 
+    num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
+    lists = sorted(num_in_sys_at_t.items())  # sorted by key, return a list of tuples
+    x, y = zip(*lists)  # unpack a list of pairs into two tuples
+    plt.plot(x, y)
+    plt.xlabel('t')
+    plt.ylabel('# in system')
+    plt.savefig('People in NH_ISQ single path.png', dpi=300)
+    plt.show()
+    plt.close()
 
+    fig = plt.figure()
+    fig.suptitle('People in NH_ISQ 1K paths')
+    for k in range(K):
+        num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
+        paths[k] = (num_in_sys_at_t.keys(), num_in_sys_at_t.values())
+    plt.ylim(0)
+    plt.xlim(0)
+    plt.xlabel('t')
+    plt.ylabel('# in system')
+    plt.savefig('People in NH_ISQ 1K paths.png', dpi=300)
+    plt.close()
 
 """
 # executable code
