@@ -349,16 +349,15 @@ def ISQ(T, type_process):
         D.append(t_D)
     depart_times = {i: A[i]+D[i] for i in range(len(A))}
     print(A)
-    print('\n\n')
+    print('\n')
     print(depart_times)
     still_in_sys_at_t = {}
     for i in A:
         list_of_ppl_in_sys = [k for k in depart_times if depart_times[k] > i]
         print(i, len(list_of_ppl_in_sys))
         # still_in_sys_at_t[A] = len()
-    print('\n\n')
+    print('\n')
     print(still_in_sys_at_t)
-
 
     time_in_system_50 = {A[i]: A[i] + D[i] for i in range(len(A)) if ((A[i]+D[i]) > 50 and A[i] <= 50)}
     time_in_system_100 = {A[i]: A[i] + D[i] for i in range(len(A)) if (A[i]+D[i]) > T}
@@ -366,7 +365,7 @@ def ISQ(T, type_process):
 
 
 def problem_9():
-    T = 10
+    T = 1.5
     """
     iter_fifty, iter_hundred = [], []
     for i in range(1000):
