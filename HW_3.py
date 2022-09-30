@@ -317,7 +317,7 @@ def problem_6():
         V[n] = K - P
         n += 1
     for n in range(N):
-        avg_V[n] = sum(V[1:n])/N
+        avg_V[n] = round(sum(V[1:n])/N,2)
     print(f'Expected stock gain at beginning of day:', avg_V)
     return
 
@@ -420,9 +420,10 @@ def problem_9():
     lists = sorted(num_in_sys_at_t.items())
     x, y = zip(*lists)
     plt.plot(x, y)
+    plt.title('People in Non-homogenous Infinite Server Queue, single path')
     plt.xlabel('t')
     plt.ylabel('# in system')
-    plt.savefig('People in NH_ISQ single path.png', dpi=300)
+    plt.savefig('People in NH_ISQ, single path.png', dpi=300)
     plt.show()
     plt.close()
 
@@ -440,22 +441,19 @@ def problem_9():
     plt.savefig('Average People in NH_ISQ 1K paths.png', dpi=300)
     plt.close()
 
-"""
+
 # executable code
-print('\n\nProblem 1')
+print('\n\nProblem 1 (Ross 7.1,2)')
 problem_1()
-print('\n\nProblem 2')
+print('\n\nProblem 2 (Ross 7.3)')
 problem_2()
-print('\n\nProblem 3')
+print('\n\nProblem 3 (Ross 7.5,6)')
 problem_3()
-print('\n\nProblem 4')
+print('\n\nProblem 4 (Ross 7.11)')
 problem_4()
-print('\n\nProblem 5')
+print('\n\nProblem 5 (Ross 7.15)')
 problem_5()
-print('\n\nProblem 6')
+print('\n\nProblem 6 (Ross 7.17)')
 problem_6()
 print('\n\nProblem 9')
 problem_9()
-"""
-
-problem_2()
