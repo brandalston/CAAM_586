@@ -322,6 +322,52 @@ def problem_6():
     return
 
 
+def JN_arrivals(i):
+    if i == 0:
+        return -(1/5)*math.log(random.random())
+    if i == 1:
+        return -(1/20)*math.log(random.random())
+    if i == 2:
+        return -(3/91)*math.log(random.random())
+
+
+def JN_service(i):
+    if i == 0:
+        return -(1/10)*math.log(random.random())
+    if i == 1:
+        return -(1/50)*math.log(random.random())
+    if i == 2:
+        return -(1/100)*math.log(random.random())
+
+
+def jackson_network(T):
+    X = [[], [], []]
+    C = [[], [], []]
+    # arrival times and departures
+    t_A = [0,0,0]
+    t_D = [math.inf, math.inf, math.inf]
+    flag = False
+    # generate first arrivals to each server
+    for i in [0,1,2]:
+        t_A[i] = JN_arrivals(i)
+    m = min(min(t_A), min(t_D))
+    for i in [0,1,2]:
+        if T > m == t_A[i]:
+            # store customer arrival time and server they went to
+            X[i].append([0,i])
+            # generate new arrival time
+            t_A[i] = JN_arrivals(i)
+            if len(X[i])==1:
+                #  generate service time
+                s = JN_arrivals(i)
+                t_D[i] = t_A[i]+s
+        elif T > m == t_D[i]:
+            chosen = X[i][0]
+
+
+    return
+
+
 def NH_ISQ_arrival_time(t):
     k = 2
     while k > (5*math.sin(t/2)+5)/10:
@@ -365,10 +411,10 @@ def problem_9():
         iter_fifty.append(len(num_left_at_fifty))
         iter_hundred.append(len(num_left_at_hundred))
     print('Using homogeneous arrival process')
-    print(f'Mean of customers in system at time = 50: {np.mean(iter_fifty)}\n'
-          f'Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
-          f'Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
-          f'Variance of customers in system at time = 100: {np.var(iter_hundred)}')
+    print(f'1K simulations Mean of customers in system at time = 50: {np.mean(iter_fifty)}\n'
+          f'1K simulations Variance of customers in system at time = 50: {np.var(iter_fifty)}\n'
+          f'1K simulations Mean of customers in system at time = 100: {np.mean(iter_hundred)}\n'
+          f'1K simulations Variance of customers in system at time = 100: {np.var(iter_hundred)}')
 
     num_left_at_fifty, num_left_at_hundred, num_in_sys_at_t = ISQ(T, 'NH')
     lists = sorted(num_in_sys_at_t.items())
@@ -412,4 +458,4 @@ print('\n\nProblem 9')
 problem_9()
 """
 
-problem_9()
+problem_2()
