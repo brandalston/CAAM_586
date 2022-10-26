@@ -12,8 +12,8 @@ def SSQ(T:float):
     # variables of system
     t, num_arriv, num_depart, num_system, num_event = 0, 0, 0, 0, 0
     running = True
-    # event is arrival
     while running:
+        # event is arrival
         if t_A < t_D and t_A < T:
             # update t, number arrivals, number people in system
             t_old = t
