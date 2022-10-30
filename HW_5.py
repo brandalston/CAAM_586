@@ -1,17 +1,12 @@
 import numpy as np
-import pandas as pd
 import statistics, math, random
 import scipy.stats
-from matplotlib import pyplot as plt
 
 
 def sum_exp_raw_estimator():
     X = []
     for k in range(1000):
-        val = 0
-        for i in range(1,5):
-            val -= i*math.log(random.random())
-        if val >= 21.6: X.append(1)
+        if sum([-i*math.log(random.random()) for i in range(1,5)]) >= 21.6: X.append(1)
         else: X.append(0)
     return statistics.mean(X)
 
@@ -36,17 +31,17 @@ def problem_1():
     for i in range(K):
         E.append(sum_exp_raw_estimator())
         E_anti.append(sum_exp_anti_estimator())
-    print('Variance reduction using antithetic estimator',
-          round(2*statistics.variance(E_anti)/statistics.variance(E),4))
+    print(f'Raw E: {statistics.mean(E)}, Var: {statistics.variance(E)}')
+    print(f'Antithetic E: {statistics.mean(E_anti)}, Var: {statistics.variance(E_anti)}')
+    print(f'Variance reduction factor using antithetic estimator: '
+          f'{round(statistics.variance(E)/statistics.variance(E_anti),4)}')
     return
 
 
 def related_normals_raw_estimator():
     X = []
     for k in range(1000):
-        y = np.random.normal(1,1)
-        x = np.random.normal(y,4)
-        if x < 1: X.append(1)
+        if np.random.normal(np.random.normal(1,1),4) < 1: X.append(1)
         else: X.append(0)
     return X
 
@@ -75,9 +70,9 @@ def problem_3():
     raw_X = related_normals_raw_estimator()
     cond_X = related_normals_cond_estimator()
     cond_anti_X = related_normals_cond_anti_estimator()
-    print(f'Raw expectation: {statistics.mean(raw_X)}. Variance: {statistics.variance(raw_X)}\n'
-          f'Conditional: {statistics.mean(cond_X)}. Variance: {statistics.variance(cond_X)}\n'
-          f'Conditional + antithetic: {statistics.mean(cond_anti_X)/2}. Variance: {statistics.variance(cond_anti_X)}')
+    print(f'Raw E: {statistics.mean(raw_X)}, Var: {statistics.variance(raw_X)}\n'
+          f'Conditional E: {statistics.mean(cond_X)}, Var: {statistics.variance(cond_X)}\n'
+          f'Conditional + antithetic E: {statistics.mean(cond_anti_X)/2}, Var: {statistics.variance(cond_anti_X)}')
     return
 
 
@@ -100,7 +95,7 @@ def insurance_cond_control_estimator(N):
     return X
 
 
-def insurance_cond_anti(N):
+def insurance_cond_anti_estimator(N):
     X = []
     for k in range(N):
         u = random.random()
@@ -115,147 +110,180 @@ def problem_4():
     N = 10000
     raw_X = insurance_raw_estimator(N)
     cond_control_X = insurance_cond_control_estimator(N)
-    cond_anti_X = insurance_cond_control_estimator(N)
-    print(statistics.mean(raw_X), statistics.variance(raw_X))
-    print(statistics.mean(cond_control_X), statistics.variance(cond_control_X))
-    print(statistics.mean(cond_anti_X), statistics.variance(cond_anti_X))
+    cond_anti_X = insurance_cond_anti_estimator(N)
+    print(f'Raw E: {statistics.mean(raw_X)}, Var: {statistics.variance(raw_X)}')
+    print(f'Conditional + control E: {statistics.mean(cond_control_X)}, Var: {statistics.variance(cond_control_X)}')
+    print(f'Conditional + anti E: {statistics.mean(cond_anti_X)}, Var: {statistics.variance(cond_anti_X)}')
     return
 
 
-def SSQ(T, N):
-    X = []
-    for k in range(N):
-        # first arrival time t_A, departure time t_D
-        t_A, t_D = -(1/2)*math.log(random.random()), math.inf
-        # dicts storing system through time
-        Arrivals, Departures = {}, {}
-        # variables of system
-        t, num_arriv, num_depart, num_system = 0, 0, 0, 0
-        running = True
-        while running:
-            # event is arrival
-            if t_A < t_D and t_A < T:
-                # update t, number arrivals, number people in system
-                t = t_A
-                num_arriv += 1
-                num_system += 1
-                # update arrival time
-                t_A = t-(1/2)*math.log(random.random())
-                # update departure time based on number of people in system
-                if num_system == 1:
-                    t_D = t-math.log(random.random())
-                # store event data
-                Arrivals[num_arriv] = t
-            # event is departure
-            elif t_D < t_A and t_D < T:
-                t = t_D
-                num_system -= 1
-                num_depart += 1
-                Y = -math.log(random.random())
-                # update/reset departure time
-                if num_system == 0:
-                    t_D = math.inf
-                elif num_system > 0:
-                    t_D = t + Y
-                # store event data
-                Departures[num_depart] = t
-            # at close but people in queue
-            elif min(t_A, t_D) > T and num_system > 0:
-                # next event must be departure
-                t = t_D
-                num_system -= 1
-                num_depart += 1
-                Y = -math.log(random.random())
-                # reset departure time
-                t_D = t + Y
-                Departures[num_depart] = t
-            elif min(t_A, t_D) > T and num_system == 0:
-                running = False
-        Total_time = {i: Departures[i]-Arrivals[i] for i in range(1,11)}
-        X.append(statistics.mean(list(Total_time.values())))
-    return X
-
-
-def anti_SSQ(T, N):
+def SSQ(T):
+    # dicts storing system through time
+    Arrivals, Departures, Num_System, U_dict_gen = {}, {}, {}, {}
+    # variables of system
+    t, num_arriv, num_depart, num_system, num_event = 0, 0, 0, 0, 0
     # first arrival time t_A, departure time t_D
     u = random.random()
-    t_A1, t_A2 = -(1/2)*math.log(u), -(1/2)*math.log(1-u)
-    t_D1, t_D2 = math.inf, math.inf
-    # dicts storing system through time
-    Arrivals1, Departures1 = {}, {}
-    Arrivals2, Departures2 = {}, {}
-    # variables of system
-    num_arriv, num_depart, num_system = 0, 0, 0
-    t1, t2 = 0, 0
+    U_dict_gen[num_event] = u
+    t_A, t_D = -(1/2)*math.log(u), math.inf
     running = True
     while running:
         # event is arrival
-        if t_A1 < t_D1 and t_A1 < T:
+        if t_A < t_D and t_A < T:
+            num_event += 1
             # update t, number arrivals, number people in system
-            t1 = t_A1
-            t2 = t_A2
+            t = t_A
             num_arriv += 1
             num_system += 1
             # update arrival time
             u = random.random()
-            t_A1 = t1-(1/2)*math.log(u)
-            t_A2 = t2-(1/2)*math.log(1-u)
+            U_dict_gen[num_event] = u
+            t_A = t-(1/2)*math.log(u)
             # update departure time based on number of people in system
             if num_system == 1:
-                u_D = random.random()
-                t_D1 = t1-math.log(u_D)
-                t_D2 = t2-math.log(1-u_D)
+                t_D = t-math.log(u)
             # store event data
-            Arrivals1[num_arriv] = t1
-            Arrivals2[num_arriv] = t2
+            Arrivals[num_arriv] = t
         # event is departure
-        elif t_D1 < t_A1 and t_D1 < T:
-            t1 = t_D1
-            t2 = t_D2
+        elif t_D < t_A and t_D < T:
+            num_event += 1
+            t = t_D
             num_system -= 1
             num_depart += 1
             u = random.random()
-            Y1, Y2 = -math.log(u), -math.log(1-u)
+            U_dict_gen[num_event] = u
             # update/reset departure time
             if num_system == 0:
-                t_D1 = math.inf
-                t_D2 = math.inf
+                t_D = math.inf
             elif num_system > 0:
-                t_D1 = t1 + Y1
-                t_D2 = t2 + Y2
+                t_D = t - math.log(u)
             # store event data
-            Departures1[num_depart] = t1
-            Departures2[num_depart] = t2
+            Departures[num_depart] = t
         # at close but people in queue
-        elif min(t_A1, t_D1) > T and num_system > 0:
+        elif min(t_A, t_D) > T and num_system > 0:
+            num_event += 1
             # next event must be departure
-            t1 = t_D1
-            t2 = t_D2
+            t = t_D
             num_system -= 1
             num_depart += 1
             u = random.random()
-            Y1, Y2 = -math.log(u), -math.log(1-u)
+            U_dict_gen[num_event] = u
             # reset departure time
-            t_D1 = t1 + Y1
-            t_D2 = t2 + Y2
-            Departures1[num_depart] = t1
-            Departures2[num_depart] = t2
-        elif min(t_A1, t_D1) > T and num_system == 0:
+            t_D = t - math.log(u)
+            Departures[num_depart] = t
+        elif min(t_A, t_D) > T and num_system == 0:
             running = False
-    Total_time1 = {i: Departures1[i]-Arrivals1[i] for i in range(1,11)}
-    Total_time2 = {i: Departures2[i]-Arrivals2[i] for i in range(1,11)}
-    for i in range(1,11):
-        print(Total_time1[i], Total_time2[i])
-        # X.append(statistics.mean(list(Total_time1.values())))
+    return Arrivals, Departures, U_dict_gen
+
+
+def anti_SSQ(T):
+    A, D, U_dict = SSQ(T)
+    # dicts storing system through time
+    Arrivals, Departures, Num_System = {}, {}, {}
+    # variables of system
+    t, num_arriv, num_depart, num_system, num_event = 0, 0, 0, 0, 0
+    # first arrival time t_A, departure time t_D
+    u = 1-U_dict[num_event]
+    t_A, t_D = -(1 / 2) * math.log(u), math.inf
+    running = True
+    while running:
+        if len(Departures) > 11:
+            running=False
+        # event is arrival
+        if t_A < t_D and t_A < T:
+            num_event += 1
+            # update t, number arrivals, number people in system
+            t = t_A
+            num_arriv += 1
+            num_system += 1
+            # update arrival time
+            u = 1 - U_dict[num_event]
+            t_A = t - (1 / 2) * math.log(u)
+            # update departure time based on number of people in system
+            if num_system == 1:
+                t_D = t - math.log(u)
+            # store event data
+            Arrivals[num_arriv] = t
+        # event is departure
+        elif t_D < t_A and t_D < T:
+            num_event += 1
+            t = t_D
+            num_system -= 1
+            num_depart += 1
+            u = 1 - U_dict[num_event]
+            # update/reset departure time
+            if num_system == 0:
+                t_D = math.inf
+            elif num_system > 0:
+                t_D = t - math.log(u)
+            # store event data
+            Departures[num_depart] = t
+        # at close but people in queue
+        elif min(t_A, t_D) > T and num_system > 0:
+            num_event += 1
+            # next event must be departure
+            t = t_D
+            num_system -= 1
+            num_depart += 1
+            u = 1 - U_dict[num_event]
+            # reset departure time
+            t_D = t - math.log(u)
+            Departures[num_depart] = t
+        elif min(t_A, t_D) > T and num_system == 0:
+            running = False
+    Arrivals_combo = {i: 0.5*(A[i]+Arrivals[i]) for i in Arrivals}
+    Departures_combo = {i: 0.5*(D[i]+Departures[i]) for i in Arrivals}
+
+    return Arrivals_combo, Departures_combo
+
+
+def problem_6():
+    T, N = 10, 2
+    X_raw, X_anti, X_cond_est = [], [], []
+    for k in range(N):
+        # print(k)
+        A_raw, D_raw, U_dict = SSQ(T)
+        times_raw = {i: D_raw[i]-A_raw[i] for i in A_raw}
+        # print('raw:', times)
+        A_anti, D_anti = anti_SSQ(T)
+        times_anti = {i: D_anti[i]-A_anti[i] for i in A_anti}
+        # print('anti:', times_anti)
+        X_raw.append(statistics.mean(times_raw.values()))
+        X_anti.append(statistics.mean(times_anti.values()))
+    print('raw:', statistics.mean(X_raw), statistics.variance(X_raw))
+    print('anti:', statistics.mean(X_anti), statistics.variance(X_anti))
     return
 
 
-def problem_5():
-    T, N = 20, 1000
-    raw_X = SSQ(T, N)
-    anti_X = anti_SSQ(T, N)
-    # print(statistics.mean(raw_X))
-    # print(statistics.variance(raw_X))
+def twoD_gauss_MC(a, mean, cov):
+    rvs = np.random.multivariate_normal(mean, cov, size=100000)
+    X = [1 if (i[0] >= a and i[1] >= a) else 0 for i in rvs]
+    if (mean != np.array([0,0])).all():
+        L = [math.exp(-mean@np.linalg.inv(cov)@np.array(i)+
+             0.5*mean@np.linalg.inv(cov)@mean)
+             for i in rvs]
+        X = np.array(X)*L
+    print(f'E: {statistics.mean(X)}, Var: {statistics.variance(X)}')
+    CI = scipy.stats.t.interval(alpha=0.95, df=len(X)-1, loc=np.mean(X), scale=scipy.stats.sem(X))
+    print(f'95% CI: {CI}')
+    return
+
+
+def problem_7():
+    a = [1,3,10]
+    mean_raw = np.array([0, 0])
+    cov = np.array([[4, -1], [-1, 4]])
+    deltas = [0.001, 2, 10]
+    for i in a:
+        print(f'Crude MC simulation, a = {i}')
+        twoD_gauss_MC(i, mean_raw, cov)
+        print(f'Importance Sampling MC simulation, a = {i}')
+        mean_best = np.array([i, i])
+        twoD_gauss_MC(i, mean_best, cov)
+        for d in deltas:
+            print(f'Importance Sampling MC simulation, a = {i}, delta = {d}')
+            twoD_gauss_MC(i, mean_best, d*cov)
+        print('')
     return
 
 
@@ -287,10 +315,24 @@ def problem_9():
     size, repeats = 100, 10000
     raw_X = CMC(repeats, size)
     cond_X = cond_MC(repeats, size)
+    print(f'Raw E: {statistics.mean(raw_X)}, Var: {statistics.variance(raw_X)}')
+    print(f'Conditional E: {statistics.mean(cond_X)}, Var: {statistics.variance(cond_X)}')
+
     return
 
-# problem_1()
-# problem_3()
-# problem_4()
-# problem_5()
+"""
+# Executable code
+print('\nProblem 1')
+problem_1()
+print('\nProblem 3')
+problem_3()
+print('\nProblem 4')
+problem_4()
+print('\nProblem 6')
+problem_6()
+print('\nProblem 7')
+problem_7()
+print('\nProblem 9')
 problem_9()
+"""
+problem_7()
