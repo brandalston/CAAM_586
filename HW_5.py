@@ -247,7 +247,7 @@ def problem_9():
     print(f'Conditional Var: {round(statistics.variance(E_cond),6)}, Reduction over Raw: {round(statistics.variance(E_raw)/statistics.variance(E_cond),4)}')
     return
 
-"""
+
 # Executable code
 print('\nProblem 1')
 problem_1()
@@ -261,5 +261,3 @@ print('\nProblem 7')
 problem_7()
 print('\nProblem 9')
 problem_9()
-"""
-problem_7()
