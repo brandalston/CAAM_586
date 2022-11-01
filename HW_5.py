@@ -34,15 +34,8 @@ def problem_1():
     return
 
 
-def related_normals_estimators(N):
+def related_normals_estimators(N, gamma):
     X_raw, X_cond, X_cond_anti, X_cond_control = [], [], [], []
-    Y, Z = [], []
-    for k in range(10000):
-        y_cov = np.random.normal(1,1)
-        Y.append(y_cov)
-        z_cov = 1 - scipy.stats.norm.cdf(y_cov, 1, 1)
-        Z.append(z_cov)
-    gamma = -np.cov(Y, Z)[0, 1] / statistics.variance(Y)
     for k in range(N):
         y = np.random.normal(1, 1)
         if np.random.normal(y, 4) < 1: X_raw.append(1)
@@ -57,8 +50,15 @@ def related_normals_estimators(N):
 
 
 def problem_3():
-    N = 10000
-    E_raw, E_cond, E_cond_anti, E_cond_control = related_normals_estimators(N)
+    N = 100000
+    Y, Z = [], []
+    for k in range(10000):
+        y_cov = np.random.normal(1, 1)
+        Y.append(y_cov)
+        z_cov = 1 - scipy.stats.norm.cdf(y_cov, 1, 1)
+        Z.append(z_cov)
+    gamma = -np.cov(Y, Z)[0, 1] / statistics.variance(Y)
+    E_raw, E_cond, E_cond_anti, E_cond_control = related_normals_estimators(N, gamma)
     print(f'Raw E: {round(statistics.mean(E_raw),6)}, Conditional E: {round(statistics.mean(E_cond),6)}, '
           f'Conditional + Antithetic Var E: {round(statistics.mean(E_cond_anti),6)}, Conditional + Control Var E: {round(statistics.mean(E_cond_control),6)}')
     print(f'Raw Var: {round(statistics.variance(E_raw),6)}')
@@ -180,10 +180,11 @@ def problem_6():
         E_control_S_I.append(sum(times_raw.values())+
                              control_S_I['gamma']*(
                                      sum(Serv_times.values())-sum(list(inter_arrival_times.values())[:-1])-control_S_I['mu']))
-    print(f'Raw E: {statistics.mean(E_raw)}, Var: {statistics.variance(E_raw)}')
-    print(f'Antithetic Var: {statistics.variance(E_anti)}')
-    print(f'Conditional on S Var: {statistics.variance(E_anti)}')
-    print(f'Conditional on S and I Var: {statistics.variance(E_anti)}')
+    print(f'Raw E: {round(statistics.mean(E_raw),6)}, Antithetic E: {round(statistics.mean(E_anti),6)}, Control of S E: {statistics.mean(E_control_S)}, Control of S and I E: {round(statistics.mean(E_control_S_I),6)}')
+    print(f'Raw Var: {round(statistics.variance(E_raw),6)}')
+    print(f'Antithetic Var: {round(statistics.variance(E_anti),6)}, Reduction over Raw: {round(statistics.variance(E_raw)/statistics.variance(E_anti),4)}')
+    print(f'Control of S Var: {round(statistics.variance(E_anti),6)}, Reduction over Raw: {round(statistics.variance(E_raw)/statistics.variance(E_control_S),4)}')
+    print(f'Control on S and I Var: {round(statistics.variance(E_anti),6)}, Reduction over Raw: {round(statistics.variance(E_raw)/statistics.variance(E_control_S_I),4)}')
 
     return
 
@@ -214,7 +215,7 @@ def problem_7():
         print(f'Importance Sampling MC simulation, a = {i}')
         mean_best = np.array([i, i])
         twoD_gauss_MC_estimator(i, mean_best, cov)
-    for i in [3,10]:
+    for i in a:
         mean_best = np.array([i, i])
         for d in deltas:
             print(f'Importance Sampling MC simulation, a = {i}, delta = {d}')
@@ -227,7 +228,7 @@ def CMC_estimators(repeats, size):
     X_raw, X_cond = [], []
     for i in range(repeats):
         K_raw_i, K_cond_i = [], []
-        for k in range(100):
+        for k in range(1000):
             D = scipy.stats.bernoulli.rvs(p=np.random.beta(1, 19), size=size)
             X = np.random.normal(3, 1, size=size)
             if sum(D*X) > 45: K_raw_i.append(1)
@@ -241,11 +242,10 @@ def CMC_estimators(repeats, size):
 def problem_9():
     size, repeats = 100, 1000
     E_raw, E_cond = CMC_estimators(repeats, size)
-    print(f'Raw E: {statistics.mean(E_raw)}, Conditional E: {statistics.mean(E_cond)}')
-    print(f'Raw Var: {statistics.variance(E_raw)}')
-    print(f'Conditional Var: {statistics.variance(E_cond)}, Reduction over Raw: {round(statistics.variance(E_raw)/statistics.variance(E_cond),4)}')
+    print(f'Raw E: {round(statistics.mean(E_raw),6)}, Conditional E: {round(statistics.mean(E_cond),6)}')
+    print(f'Raw Var: {round(statistics.variance(E_raw),6)}')
+    print(f'Conditional Var: {round(statistics.variance(E_cond),6)}, Reduction over Raw: {round(statistics.variance(E_raw)/statistics.variance(E_cond),4)}')
     return
-
 
 """
 # Executable code
@@ -262,5 +262,4 @@ problem_7()
 print('\nProblem 9')
 problem_9()
 """
-
-problem_9()
+problem_7()
