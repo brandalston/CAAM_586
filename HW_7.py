@@ -28,7 +28,7 @@ def problem_1():
         avg_X = statistics.mean(X)
         avg_Y = statistics.mean(Y)
         avg_XY = statistics.mean(XY)
-        print('B value:', b)
+        print('\nB value:', b)
         print('E[X]:', round(avg_X, 4))
         print('E[Y]:', round(avg_Y, 4))
         print('E[XY]:', round(avg_XY, 4))
@@ -68,20 +68,15 @@ def problem_2():
 
 
 def image_analysis():
-    N = [3, 5, 10]
+    grid_size = [3, 5, 10]
     updates = 10**5
     zeta = numpy.random.uniform(0, 1)
     beta = 1 / numpy.random.uniform(0, 1)
-    for n in N:
+    for n in grid_size:
         G = networkx.grid_graph(dim=[n, n])
-        for v in G.nodes:
-            if numpy.random.uniform(0, 1) < .5: G.nodes[v]['val'] = 1
-            else: G.nodes[v]['val'] = -1
-        X = {v: [G.nodes[v]['val']] for v in G.nodes}
-        N = {v: None for v in G.nodes}
-        M = {v: None for v in G.nodes}
-        A = {v: None for v in G.nodes}
-        B = {v: None for v in G.nodes}
+        X = {v: [+1 if numpy.random.uniform(0, 1) < .5 else -1] for v in G.nodes}
+        N, M = {v: None for v in G.nodes}, {v: None for v in G.nodes}
+        A, B = {v: None for v in G.nodes}, {v: None for v in G.nodes}
         for i in range(1, updates):
             for v in G.nodes:
                 N[v] = sum([1 if X[u][-1] == X[v][-1] else 0 for u in G.neighbors(v)])
@@ -91,13 +86,13 @@ def image_analysis():
                 B[v] = zeta ** delta_v * (1 - zeta) ** (1 - delta_v)
                 u = numpy.random.uniform(0, 1)
                 pi_v = math.exp(-beta*M[v])*B[v] / (math.exp(-beta*N[v])*A[v]+math.exp(-beta*M[v])*B[v])
-                X[v].append(-X[v][-1]) if pi_v < u else X[v].append(X[v][-1])
+                X[v].append(X[v][-1]) if pi_v <= u else X[v].append(-X[v][-1])
         avg_v = pandas.DataFrame(numpy.nan, index=range(n), columns=range(n))
-        print('N:', n, 'Zeta:', round(zeta, 4), 'Beta:', round(beta, 4))
+        print(f'\nImage size ({n}x{n})', 'Zeta:', round(zeta, 4), 'Beta:', round(beta, 4))
         for v in G.nodes:
             avg_v.at[v[0], v[1]] = statistics.mean(X[v])
         print(avg_v)
-        return
+    return
 
 
 # print('\nProblem 1 (Ross 12.6)')
