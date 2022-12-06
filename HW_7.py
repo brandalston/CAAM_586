@@ -80,6 +80,7 @@ def image_analysis():
         N, M = {v: None for v in G.nodes}, {v: None for v in G.nodes}
         A, B = {v: None for v in G.nodes}, {v: None for v in G.nodes}
         X = {v: [+1 if numpy.random.uniform(0, 1) < .5 else -1] for v in G.nodes}
+        print(f'\nImage size ({size}x{size}), Start {time.strftime("%I:%M %p", time.localtime())}')
         start = time.perf_counter()
         for i in range(1, updates):
             for v in G.nodes:
@@ -96,8 +97,6 @@ def image_analysis():
             results_writer = csv.writer(results, delimiter=',', quotechar='"')
             results_writer.writerow([size, zeta, beta, run_time])
             results.close()
-        print(f'\nImage size ({size}x{size}), Zeta: {round(zeta, 4)}, Beta: {round(beta, 4)},'
-              f' # Updates: {updates}, Run Time: {round(run_time, 4)}')
     return
 
 
