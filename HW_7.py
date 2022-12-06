@@ -69,28 +69,34 @@ def problem_2():
 
 def image_analysis():
     grid_size = [3, 5, 10]
-    updates = 10**5
+    grid_size = [3]
+    updates = 10**6
     zeta = numpy.random.uniform(0, 1)
     beta = 1 / numpy.random.uniform(0, 1)
     for n in grid_size:
         G = networkx.grid_graph(dim=[n, n])
         X = {v: [+1 if numpy.random.uniform(0, 1) < .5 else -1] for v in G.nodes}
+        G_0 = pandas.DataFrame(numpy.nan, index=range(n), columns=range(n))
+        for v in G.nodes:
+            G_0.at[v[0], v[1]] = X[v][-1]
         N, M = {v: None for v in G.nodes}, {v: None for v in G.nodes}
         A, B = {v: None for v in G.nodes}, {v: None for v in G.nodes}
         for i in range(1, updates):
             for v in G.nodes:
-                N[v] = sum([1 if X[u][-1] == X[v][-1] else 0 for u in G.neighbors(v)])
+                N[v] = sum([1 if X[u][-1] != X[v][-1] else 0 for u in G.neighbors(v)])
                 M[v] = len(list(G.neighbors(v)))-N[v]
                 delta_v = 1 if X[v][-1] == X[v][0] else 0
                 A[v] = zeta ** (1-delta_v) * (1-zeta) ** delta_v
                 B[v] = zeta ** delta_v * (1 - zeta) ** (1 - delta_v)
-                u = numpy.random.uniform(0, 1)
-                pi_v = math.exp(-beta*M[v])*B[v] / (math.exp(-beta*N[v])*A[v]+math.exp(-beta*M[v])*B[v])
-                X[v].append(X[v][-1]) if pi_v <= u else X[v].append(-X[v][-1])
+                pi_v = (math.exp(-beta*M[v])*B[v]) / (math.exp(-beta*N[v])*A[v] + math.exp(-beta*M[v])*B[v])
+                X[v].append(X[v][-1]) if pi_v <= numpy.random.uniform(0, 1) else X[v].append(-X[v][-1])
         avg_v = pandas.DataFrame(numpy.nan, index=range(n), columns=range(n))
-        print(f'\nImage size ({n}x{n})', 'Zeta:', round(zeta, 4), 'Beta:', round(beta, 4))
         for v in G.nodes:
             avg_v.at[v[0], v[1]] = statistics.mean(X[v])
+        print(f'\nImage size ({n}x{n})', 'Zeta:', round(zeta, 4), 'Beta:', round(beta, 4))
+        print('Initial')
+        print(G_0)
+        print('updated')
         print(avg_v)
     return
 
