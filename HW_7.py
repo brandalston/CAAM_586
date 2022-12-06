@@ -1,111 +1,109 @@
-import networkx as nx
-import math, random, numpy, statistics
+import math, pandas, numpy, statistics, networkx
+desired_width = 320
+pandas.set_option('display.width', desired_width)
+numpy.set_printoptions(linewidth=desired_width)
+pandas.set_option('display.max_columns', 10)
 
 
-def x_given_y(y,B):
+def a_given_b(B, x=None, y=None):
     u = numpy.random.uniform(0,1)
-    return -(1/y)*math.log(1-u*(1-math.exp(-B*y)))
-
-
-def y_given_x(x,B):
-    u = numpy.random.uniform(0,1)
-    return -(1/x)*math.log(1-u*(1-math.exp(-B*x)))
+    if x is None:
+        return -(1/y)*math.log(1-u*(1-math.exp(-B*y)))
+    if y is None:
+        return -(1/x)*math.log(1-u*(1-math.exp(-B*x)))
 
 
 def problem_1():
-    N = 100000
-    B = [1,5,10,100]
+    N = 10**6
+    B = [1, 5, 10, 100]
     for b in B:
         x_0, y_0 = numpy.random.uniform(0, b), numpy.random.uniform(0, b)
         X, Y, XY = [x_0], [y_0], [x_0*y_0]
         for i in range(1, N):
-            x = x_given_y(Y[-1], b)
+            x = a_given_b(b, x=None, y=Y[-1])
             X.append(x)
-            y = y_given_x(X[-1], b)
+            y = a_given_b(b, x=X[-1], y=None)
             Y.append(y)
             XY.append(X[-1]*Y[-1])
         avg_X = statistics.mean(X)
         avg_Y = statistics.mean(Y)
         avg_XY = statistics.mean(XY)
-        print('B value:', b, 'E[X]', avg_X)
-        print('B value:', b, 'E[Y]', avg_Y)
-        print('B value:', b, 'E[XY]', avg_XY)
-        print('\n')
+        print('B value:', b)
+        print('E[X]:', round(avg_X, 4))
+        print('E[Y]:', round(avg_Y, 4))
+        print('E[XY]:', round(avg_XY, 4))
     return
 
 
-def x_g_yz(y,z,a,b):
-    u = numpy.random.uniform(0, 1)
-    return -math.log(1-u)/(1+a*y+b*z)
-
-
-def y_g_xz(x,z,a,c):
-    u = numpy.random.uniform(0, 1)
-    return -math.log(1-u)/(1+a*x+c*z)
-
-
-def z_g_xy(x,y,b,c):
-    u = numpy.random.uniform(0, 1)
-    return -math.log(1-u)/(1+b*x+c*y)
+def tri_var_cond(a, b, c, x=None, y=None, z=None):
+    u = numpy.random.uniform(0,1)
+    if x is None: return -math.log(1-u)/(1+a*y+b*z)
+    if y is None: return -math.log(1-u)/(1+a*x+c*z)
+    if z is None: return -math.log(1-u)/(1+b*x+c*y)
 
 
 def problem_2():
     a, b, c = 1, 1, 1
     x_0, y_0, z_0 = 1/numpy.random.uniform(0, 1), 1/numpy.random.uniform(0, 1), 1/numpy.random.uniform(0, 1)
-    N = 100000
+    N = 10**6
     X, Y, Z, XYZ = [x_0], [y_0], [z_0], [x_0 * y_0*z_0]
     for i in range(1, N):
-        x = x_g_yz(Y[-1], Z[-1], a, b)
+        x = tri_var_cond(a, b, c, x=None, y=Y[-1], z=Z[-1])
         X.append(x)
-        y = y_g_xz(X[-1], Z[-1], a, c)
+        y = tri_var_cond(a, b, c, x=X[-1], y=None, z=Z[-1])
         Y.append(y)
-        z = z_g_xy(X[-1], Y[-1], b, c)
+        z = tri_var_cond(a, b, c, x=X[-1], y=Y[-1], z=None)
         Z.append(z)
         XYZ.append(x*y*z)
     avg_X = statistics.mean(X)
     avg_Y = statistics.mean(Y)
     avg_Z = statistics.mean(Z)
     avg_XYZ = statistics.mean(XYZ)
-    print('Start: X', x_0, 'Y', y_0, 'Z', z_0)
-    print('E[X]', avg_X)
-    print('E[Y]', avg_Y)
-    print('E[Z]', avg_Z)
-    print('E[XYZ]', avg_XYZ)
+    print('Start X:', round(x_0, 4), 'Y:', round(y_0, 4), 'Z:', round(z_0, 4))
+    print('E[X]:', round(avg_X, 4))
+    print('E[Y]:', round(avg_Y, 4))
+    print('E[Z]:', round(avg_Z, 4))
+    print('E[XYZ]:', round(avg_XYZ, 4))
     return
 
 
-def problem_5():
-    n = 4
-    updates = 10000
-    G = nx.grid_graph(dim=[n,n])
+def image_analysis():
+    N = [3, 5, 10]
+    updates = 10**5
     zeta = numpy.random.uniform(0, 1)
-    beta = 1/numpy.random.uniform(0, 1)
-    for v in G.nodes:
-        if numpy.random.uniform(0,1) < .5: G.nodes[v]['val'] = 1
-        else: G.nodes[v]['val'] = -1
-    X = {v: [G.nodes[v]['val']] for v in G.nodes}
-    N = {v: None for v in G.nodes}
-    M = {v: None for v in G.nodes}
-    A = {v: None for v in G.nodes}
-    B = {v: None for v in G.nodes}
-    for i in range(1, updates):
+    beta = 1 / numpy.random.uniform(0, 1)
+    for n in N:
+        G = networkx.grid_graph(dim=[n, n])
         for v in G.nodes:
-            N[v] = sum([1 if X[u][-1] == X[v][-1] else 0 for u in G.neighbors(v)])
-            M[v] = len(list(G.neighbors(v)))-N[v]
-            delta_v = 1 if X[v][-1] == X[v][0] else 0
-            A[v] = zeta ** (1-delta_v) * (1-zeta) ** delta_v
-            B[v] = zeta ** delta_v * (1 - zeta) ** (1 - delta_v)
-            u = numpy.random.uniform(0, 1)
-            pi_v = math.exp(-beta*M[v])*B[v] / (math.exp(-beta*N[v])*A[v]+math.exp(-beta*M[v])*B[v])
-            if pi_v < u: X[v].append(-1)
-            else: X[v].append(1)
-    avg_v = {v: statistics.mean(X[v]) for v in G.nodes}
-    for v in G.nodes:
-        print(v, avg_v[v])
-    return
+            if numpy.random.uniform(0, 1) < .5: G.nodes[v]['val'] = 1
+            else: G.nodes[v]['val'] = -1
+        X = {v: [G.nodes[v]['val']] for v in G.nodes}
+        N = {v: None for v in G.nodes}
+        M = {v: None for v in G.nodes}
+        A = {v: None for v in G.nodes}
+        B = {v: None for v in G.nodes}
+        for i in range(1, updates):
+            for v in G.nodes:
+                N[v] = sum([1 if X[u][-1] == X[v][-1] else 0 for u in G.neighbors(v)])
+                M[v] = len(list(G.neighbors(v)))-N[v]
+                delta_v = 1 if X[v][-1] == X[v][0] else 0
+                A[v] = zeta ** (1-delta_v) * (1-zeta) ** delta_v
+                B[v] = zeta ** delta_v * (1 - zeta) ** (1 - delta_v)
+                u = numpy.random.uniform(0, 1)
+                pi_v = math.exp(-beta*M[v])*B[v] / (math.exp(-beta*N[v])*A[v]+math.exp(-beta*M[v])*B[v])
+                X[v].append(-X[v][-1]) if pi_v < u else X[v].append(X[v][-1])
+        avg_v = pandas.DataFrame(numpy.nan, index=range(n), columns=range(n))
+        print('N:', n, 'Zeta:', round(zeta, 4), 'Beta:', round(beta, 4))
+        for v in G.nodes:
+            avg_v.at[v[0], v[1]] = statistics.mean(X[v])
+        print(avg_v)
+        return
 
 
+# print('\nProblem 1 (Ross 12.6)')
 # problem_1()
+# print('\nProblem 2 (Ross 12.11)')
 # problem_2()
-problem_5()
+print('\nProblem 5 (Asmussen and Glynn 5.7)')
+image_analysis()
 
