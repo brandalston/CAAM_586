@@ -101,4 +101,3 @@ def image_analysis():
 # problem_2()
 print('\nProblem 5 (Asmussen and Glynn 5.7)')
 image_analysis()
-
