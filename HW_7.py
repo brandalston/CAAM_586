@@ -72,7 +72,7 @@ def problem_2():
 def image_analysis():
     results_file = 'gibbs_sampling.csv'
     grid_size = [3, 5, 10, 15, 20, 25]
-    updates = 10**3
+    updates = 10**5
     zeta, beta = .5, 1
     for n in grid_size:
         size = 2**n
