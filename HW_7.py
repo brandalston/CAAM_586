@@ -71,7 +71,7 @@ def problem_2():
 
 def image_analysis():
     results_file = 'gibbs_sampling.csv'
-    grid_size = [3, 5, 10, 15, 20, 25]
+    grid_size = [4,6,7]
     updates = 10**5
     zeta, beta = .5, 1
     for n in grid_size:
@@ -92,9 +92,6 @@ def image_analysis():
                 pi_v = (math.exp(-beta*M[v])*B[v]) / (math.exp(-beta*N[v])*A[v] + math.exp(-beta*M[v])*B[v])
                 X[v].append(X[v][-1]) if pi_v <= numpy.random.uniform(0, 1) else X[v].append(-X[v][-1])
         run_time = time.perf_counter()-start
-        avg_v = pandas.DataFrame(numpy.nan, index=range(size), columns=range(size))
-        for (x, y) in G.nodes:
-            avg_v.at[x, y] = statistics.mean(X[(x, y)])
         with open(results_file, mode='a') as results:
             results_writer = csv.writer(results, delimiter=',', quotechar='"')
             results_writer.writerow([size, zeta, beta, run_time])
