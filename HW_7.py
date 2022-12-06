@@ -99,6 +99,8 @@ def image_analysis():
             results_writer = csv.writer(results, delimiter=',', quotechar='"')
             results_writer.writerow([size, zeta, beta, run_time])
             results.close()
+        print(f'\nImage size ({size}x{size}), Zeta: {round(zeta, 4)}, Beta: {round(beta, 4)},'
+              f' # Updates: {updates}, Run Time: {round(run_time, 4)}')
     return
 
 
