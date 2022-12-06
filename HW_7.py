@@ -1,4 +1,4 @@
-import math, pandas, numpy, statistics, networkx, time
+import math, pandas, numpy, statistics, networkx, time, csv
 
 desired_width = 320
 pandas.set_option('display.width', desired_width)
@@ -70,14 +70,13 @@ def problem_2():
 
 
 def image_analysis():
-    grid_size = [5, 10, 15, 20, 25]
-    updates = 10**6
-    zeta = .5
-    beta = 1
-    # betas = [.5, 1, 5, 25]
-    # zetas = [.1, .25, .5, .75]
+    results_file = 'gibbs_sampling.csv'
+    grid_size = [3, 5, 10, 15, 20, 25]
+    updates = 10**3
+    zeta, beta = .5, 1
     for n in grid_size:
-        G = networkx.grid_graph(dim=[2**n, 2**n])
+        size = 2**n
+        G = networkx.grid_graph(dim=[size, size])
         N, M = {v: None for v in G.nodes}, {v: None for v in G.nodes}
         A, B = {v: None for v in G.nodes}, {v: None for v in G.nodes}
         X = {v: [+1 if numpy.random.uniform(0, 1) < .5 else -1] for v in G.nodes}
@@ -93,11 +92,13 @@ def image_analysis():
                 pi_v = (math.exp(-beta*M[v])*B[v]) / (math.exp(-beta*N[v])*A[v] + math.exp(-beta*M[v])*B[v])
                 X[v].append(X[v][-1]) if pi_v <= numpy.random.uniform(0, 1) else X[v].append(-X[v][-1])
         run_time = time.perf_counter()-start
-        avg_v = pandas.DataFrame(numpy.nan, index=range(2**n), columns=range(2**n))
+        avg_v = pandas.DataFrame(numpy.nan, index=range(size), columns=range(size))
         for (x, y) in G.nodes:
             avg_v.at[x, y] = statistics.mean(X[(x, y)])
-        print(f'\nImage size ({n}x{n}). Zeta: {round(zeta, 4)} Beta: {round(beta, 4)}'
-              f'# Updates: {updates}. Run Time {round(run_time, 4)}')
+        with open(results_file, mode='a') as results:
+            results_writer = csv.writer(results, delimiter=',', quotechar='"')
+            results_writer.writerow([size, zeta, beta, run_time])
+            results.close()
     return
 
 
