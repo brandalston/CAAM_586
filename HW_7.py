@@ -1,4 +1,5 @@
-import math, pandas, numpy, statistics, networkx
+import math, pandas, numpy, statistics, networkx, time
+
 desired_width = 320
 pandas.set_option('display.width', desired_width)
 numpy.set_printoptions(linewidth=desired_width)
@@ -28,7 +29,7 @@ def problem_1():
         avg_X = statistics.mean(X)
         avg_Y = statistics.mean(Y)
         avg_XY = statistics.mean(XY)
-        print('\nB value:', b)
+        print(f'\nB: {b}, {N} updates.')
         print('E[X]:', round(avg_X, 4))
         print('E[Y]:', round(avg_Y, 4))
         print('E[XY]:', round(avg_XY, 4))
@@ -59,6 +60,7 @@ def problem_2():
     avg_Y = statistics.mean(Y)
     avg_Z = statistics.mean(Z)
     avg_XYZ = statistics.mean(XYZ)
+    print(N, 'updates')
     print('Start X:', round(x_0, 4), 'Y:', round(y_0, 4), 'Z:', round(z_0, 4))
     print('E[X]:', round(avg_X, 4))
     print('E[Y]:', round(avg_Y, 4))
@@ -68,21 +70,18 @@ def problem_2():
 
 
 def image_analysis():
-    grid_size = [3, 5, 10]
-    grid_size = [3]
+    grid_size = [5, 10, 15, 20, 25]
     updates = 10**6
-    zeta = numpy.random.uniform(0, 1)
-    beta = 1 / numpy.random.uniform(0, 1)
+    zeta = .5
+    beta = 1
     # betas = [.5, 1, 5, 25]
     # zetas = [.1, .25, .5, .75]
     for n in grid_size:
-        G = networkx.grid_graph(dim=[n, n])
-        X = {v: [+1 if numpy.random.uniform(0, 1) < .5 else -1] for v in G.nodes}
-        G_0 = pandas.DataFrame(numpy.nan, index=range(n), columns=range(n))
-        for (x, y) in G.nodes:
-            G_0.at[x, y] = X[(x, y)][-1]
+        G = networkx.grid_graph(dim=[2**n, 2**n])
         N, M = {v: None for v in G.nodes}, {v: None for v in G.nodes}
         A, B = {v: None for v in G.nodes}, {v: None for v in G.nodes}
+        X = {v: [+1 if numpy.random.uniform(0, 1) < .5 else -1] for v in G.nodes}
+        start = time.perf_counter()
         for i in range(1, updates):
             for v in G.nodes:
                 N[v] = sum([1 if X[u][-1] != X[v][-1] else 0 for u in G.neighbors(v)])
@@ -93,14 +92,12 @@ def image_analysis():
                 B[v] = zeta ** delta_v * (1 - zeta) ** (1 - delta_v)
                 pi_v = (math.exp(-beta*M[v])*B[v]) / (math.exp(-beta*N[v])*A[v] + math.exp(-beta*M[v])*B[v])
                 X[v].append(X[v][-1]) if pi_v <= numpy.random.uniform(0, 1) else X[v].append(-X[v][-1])
-        avg_v = pandas.DataFrame(numpy.nan, index=range(n), columns=range(n))
+        run_time = time.perf_counter()-start
+        avg_v = pandas.DataFrame(numpy.nan, index=range(2**n), columns=range(2**n))
         for (x, y) in G.nodes:
             avg_v.at[x, y] = statistics.mean(X[(x, y)])
-        print(f'\nImage size ({n}x{n})', 'Zeta:', round(zeta, 4), 'Beta:', round(beta, 4))
-        print('Initial')
-        print(G_0)
-        print('updated')
-        print(avg_v)
+        print(f'\nImage size ({n}x{n}). Zeta: {round(zeta, 4)} Beta: {round(beta, 4)}'
+              f'# Updates: {updates}. Run Time {round(run_time, 4)}')
     return
 
 
@@ -108,5 +105,5 @@ def image_analysis():
 # problem_1()
 # print('\nProblem 2 (Ross 12.11)')
 # problem_2()
-print('\nProblem 5 (Asmussen and Glynn 5.7)')
+# print('\nProblem 5 (Asmussen and Glynn 5.7)')
 image_analysis()
