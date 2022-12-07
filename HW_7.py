@@ -71,7 +71,7 @@ def problem_2():
 
 def image_analysis():
     results_file = 'gibbs_sampling.csv'
-    grid_size = [4,6,7]
+    grid_size = [3, 4, 5, 6, 7]
     updates = 10**5
     zeta, beta = .5, 1
     for n in grid_size:
@@ -97,7 +97,8 @@ def image_analysis():
             results_writer = csv.writer(results, delimiter=',', quotechar='"')
             results_writer.writerow([size, zeta, beta, updates, run_time])
             results.close()
-        print(f'\nImage size ({size}x{size}) Run Time: {round(run_time, 4)}')
+        print(f'\nImage size ({size}x{size}) Run Time: {round(run_time, 4)} '
+              f'({time.strftime("%I:%M %p", time.localtime())})')
     return
 
 
