@@ -95,7 +95,7 @@ def image_analysis():
         run_time = time.perf_counter()-start
         with open(results_file, mode='a') as results:
             results_writer = csv.writer(results, delimiter=',', quotechar='"')
-            results_writer.writerow([size, zeta, beta, run_time])
+            results_writer.writerow([size, zeta, beta, updates, run_time])
             results.close()
         print(f'\nImage size ({size}x{size}) Run Time: {round(run_time, 4)}')
     return
